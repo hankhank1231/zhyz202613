@@ -81,45 +81,19 @@ h2 .k{font-size:12px;color:#0b1322;background:var(--gold);font-family:var(--sans
     radial-gradient(120% 90% at 30% 20%, rgba(38,62,102,.35), transparent 60%),
     linear-gradient(160deg,var(--panel),var(--panel2));
   box-shadow:0 24px 60px rgba(0,0,0,.45)}
-#map{display:block;width:100%;height:clamp(430px,68vh,780px);touch-action:none;cursor:grab}
-#map.dragging{cursor:grabbing}
+#map{width:100%;height:clamp(430px,68vh,780px)}
 .map-tools{position:absolute;top:14px;right:14px;z-index:5;display:flex;gap:8px}
-.map-tools button{cursor:pointer;font-family:var(--sans);font-size:13px;min-width:38px;
+.map-tools button{cursor:pointer;font-family:var(--sans);font-size:12px;letter-spacing:.12em;
   color:var(--gold2);background:rgba(11,19,34,.85);border:1px solid rgba(240,192,96,.4);
-  padding:7px 12px;border-radius:999px;transition:.25s;letter-spacing:.05em}
+  padding:7px 14px;border-radius:999px;transition:.25s}
 .map-tools button:hover{background:var(--gold);color:#0b1322;box-shadow:0 0 18px rgba(240,192,96,.45)}
 .legend{position:absolute;left:16px;bottom:14px;z-index:5;display:flex;align-items:center;gap:14px;
   font-size:11px;color:var(--muted);background:rgba(11,19,34,.72);padding:8px 14px;border-radius:999px;
   border:1px solid rgba(240,192,96,.18);letter-spacing:.08em}
 .legend i{display:inline-block;border-radius:50%;vertical-align:middle;margin-right:5px;
   background:radial-gradient(circle at 35% 35%,#ffe9b8,#e8963c);box-shadow:0 0 8px rgba(240,192,96,.6)}
-.map-hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:5;white-space:nowrap;
-  font-size:11px;color:var(--muted);background:rgba(11,19,34,.72);padding:7px 14px;border-radius:999px;
-  border:1px solid rgba(240,192,96,.18);letter-spacing:.1em}
-
-/* SVG 地图元素 */
-.land{fill:url(#landG);stroke:#4a6da8;stroke-width:.9;stroke-linejoin:round;
-  filter:drop-shadow(0 8px 18px rgba(0,0,0,.55))}
-.grat line{stroke:rgba(159,183,220,.07);stroke-width:.7;stroke-dasharray:3 7}
-.mk{cursor:pointer;transition:opacity .3s}
-.mk:focus{outline:none}
-.mk-dot{fill:url(#mGrad);stroke:#fff3d6;stroke-width:1.2;
-  filter:drop-shadow(0 0 6px rgba(240,192,96,.8));
-  transition:transform .25s;transform-box:fill-box;transform-origin:center}
-.mk:hover .mk-dot,.mk:focus .mk-dot{transform:scale(1.18)}
-.mk-halo{fill:none;stroke:rgba(240,192,96,.55);stroke-width:1.5;opacity:0;
-  transform-box:fill-box;transform-origin:center;animation:pulse 3.4s ease-out infinite}
-@keyframes pulse{0%{transform:scale(1);opacity:.75}70%{transform:scale(2.2);opacity:0}100%{transform:scale(2.2);opacity:0}}
-.mk-ring{fill:none;stroke:var(--gold);stroke-width:1.4;stroke-dasharray:4 5;opacity:0;transition:opacity .3s;
-  transform-box:fill-box;transform-origin:center}
-.mk.sel .mk-ring{opacity:.95;animation:spin 9s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.mk-label{font-family:var(--sans);font-size:13px;font-weight:600;fill:#f6e7c4;letter-spacing:.08em;
-  paint-order:stroke;stroke:rgba(8,14,26,.92);stroke-width:3px;pointer-events:none}
-.mk.sel .mk-label{fill:var(--gold2)}
-#map.has-sel .mk:not(.sel){opacity:.32}
-.inset-t{font-family:var(--sans);font-size:11px;fill:var(--muted);letter-spacing:.2em}
-.compass text{font-family:var(--serif);font-size:12px;fill:rgba(240,192,96,.75)}
+.map-err{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  color:var(--muted);font-size:14px;z-index:4;text-align:center;padding:20px}
 
 /* 地图内名单面板 */
 .mpanel{position:absolute;z-index:6;top:16px;right:16px;width:min(300px,80%);max-height:calc(100% - 32px);
@@ -188,7 +162,7 @@ footer b{color:var(--gold);font-weight:500}
   .motto{display:none}
   .wm{font-size:130px;top:-10px}
   #map{height:clamp(380px,58vh,560px)}
-  .legend,.map-hint{display:none}
+  .legend{display:none}
   .mpanel{top:auto;bottom:12px;left:12px;right:12px;width:auto;max-height:52%;transform:translateY(26px)}
   .mpanel.open{transform:none}
   .sch{max-width:52%}
@@ -220,68 +194,21 @@ footer b{color:var(--gold);font-weight:500}
   <section>
     <div class="sec-head">
       <h2><span class="k">01</span>录取分布 · 全国地图</h2>
-      <span class="hint">滚轮 / 双指缩放 · 拖拽平移 · 点击标记在地图内展开名单，再次点击收起</span>
+      <span class="hint">滚轮 / 双指缩放 · 拖拽平移 · 悬停标记可预览名单</span>
     </div>
     <div class="map-panel reveal">
-      <div class="map-tools">
-        <button id="zoomIn" title="放大">＋</button>
-        <button id="zoomOut" title="缩小">－</button>
-        <button id="resetBtn" title="重置视图">⟲ 重置</button>
-      </div>
-
-      <svg id="map" viewBox="0 0 1000 714" preserveAspectRatio="xMidYMid meet" role="img" aria-label="全国录取分布地图">
-        <defs>
-          <linearGradient id="landG" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#1d3050"/><stop offset="1" stop-color="#152441"/>
-          </linearGradient>
-          <radialGradient id="mGrad" cx="35%" cy="35%" r="80%">
-            <stop offset="0" stop-color="#ffe9b8"/><stop offset=".55" stop-color="#f0c060"/><stop offset="1" stop-color="#d97b2a"/>
-          </radialGradient>
-        </defs>
-        <g id="world">
-          <g class="grat">
-            <line x1="112" y1="0" x2="112" y2="714"/><line x1="272" y1="0" x2="272" y2="714"/>
-            <line x1="432" y1="0" x2="432" y2="714"/><line x1="592" y1="0" x2="592" y2="714"/>
-            <line x1="752" y1="0" x2="752" y2="714"/><line x1="912" y1="0" x2="912" y2="714"/>
-            <line x1="0" y1="87" x2="1000" y2="87"/><line x1="0" y1="280" x2="1000" y2="280"/>
-            <line x1="0" y1="473" x2="1000" y2="473"/><line x1="0" y1="666" x2="1000" y2="666"/>
-          </g>
-          <!-- 中国大陆（简化轮廓） -->
-          <path class="land" d="M987,118 L952,131 L925,133 L920,112 L904,108 L872,83 L858,54 L824,29 L790,19 L768,25 L752,42 L720,87 L710,95 L680,126 L688,133 L648,183 L624,208 L544,234 L480,243 L432,230 L387,226 L363,203 L285,176 L256,145 L237,102 L200,120 L157,143 L149,174 L118,197 L96,222 L56,257 L16,268 L6,290 L29,338 L45,359 L72,372 L94,390 L112,444 L131,473 L176,494 L224,511 L264,510 L304,517 L344,492 L371,504 L394,511 L411,531 L405,560 L397,589 L424,621 L451,631 L459,645 L464,619 L494,619 L512,605 L528,611 L539,624 L560,636 L578,638 L589,649 L598,661 L602,644 L613,638 L627,634 L650,624 L654,620 L666,617 L699,601 L723,580 L746,551 L770,512 L782,476 L771,466 L782,448 L771,435 L765,416 L757,391 L749,381 L758,357 L766,346 L786,329 L795,332 L779,323 L763,323 L750,332 L733,317 L718,305 L728,296 L749,282 L768,265 L787,269 L778,301 L773,309 L794,290 L822,280 L837,263 L851,259 L862,245 L882,253 L902,234 L917,224 L922,236 L933,214 L942,187 L958,166 L976,149 Z"/>
-          <!-- 海南岛 -->
-          <path class="land" d="M601,665 L609,669 L607,685 L592,697 L582,700 L570,681 L571,667 L586,664 Z"/>
-          <!-- 台湾岛 -->
-          <path class="land" d="M779,566 L774,590 L771,613 L766,630 L754,607 L755,582 L766,564 Z"/>
-        </g>
-        <g id="markers"></g>
-        <!-- 指北针 -->
-        <g class="compass" transform="translate(36,44)" opacity=".8">
-          <circle r="15" fill="rgba(11,19,34,.6)" stroke="rgba(240,192,96,.4)" stroke-width="1"/>
-          <path d="M0,-9 L4.5,7 L0,3.5 L-4.5,7 Z" fill="#f0c060"/>
-          <text y="-21" text-anchor="middle">北</text>
-        </g>
-        <!-- 南海诸岛附图 -->
-        <g transform="translate(806,556)">
-          <rect width="176" height="146" rx="10" fill="rgba(11,19,34,.92)" stroke="rgba(240,192,96,.35)" stroke-dasharray="5 4"/>
-          <path d="M40,14 C18,58 28,108 76,126 C120,140 152,102 154,56 L152,16" fill="none"
-                stroke="rgba(240,192,96,.55)" stroke-width="1.3" stroke-dasharray="7 6"/>
-          <circle cx="96" cy="52" r="1.7" fill="#f0c060" opacity=".8"/>
-          <circle cx="84" cy="84" r="1.7" fill="#f0c060" opacity=".8"/>
-          <circle cx="106" cy="98" r="1.7" fill="#f0c060" opacity=".8"/>
-          <circle cx="70" cy="108" r="1.7" fill="#f0c060" opacity=".8"/>
-          <text class="inset-t" x="88" y="141" text-anchor="middle">南海诸岛</text>
-        </g>
-      </svg>
+      <div class="map-tools"><button id="resetBtn">⟲ 重置视图</button></div>
+      <div id="map"></div>
+      <div class="map-err" id="mapErr">地图资源加载失败，请检查网络后刷新页面重试</div>
 
       <div class="mpanel" id="mpanel" aria-live="polite"></div>
-      <div class="mtt" id="mtt"></div>
+
       <div class="legend">
         <span><i style="width:8px;height:8px"></i>1 人</span>
         <span><i style="width:14px;height:14px"></i>5 人</span>
         <span><i style="width:22px;height:22px"></i>10 人+</span>
         <span style="opacity:.7">圆点大小 = 录取人数</span>
       </div>
-      <div class="map-hint">点击城市标记展开名单 · 再次点击收起</div>
     </div>
     <div class="city-strip" id="cityStrip"></div>
   </section>
@@ -289,61 +216,52 @@ footer b{color:var(--gold);font-weight:500}
   <section>
     <div class="sec-head">
       <h2><span class="k">02</span>同学名录 · 按城市</h2>
-      <span class="hint">姓名已脱敏 · 点击地图标记可在地图内直接展开对应名单</span>
+      <span class="hint">姓名已脱敏 · 点击地图标记可在地图内直接查看对应名单</span>
     </div>
     <div class="groups" id="groups"></div>
   </section>
 
   <footer>
     <span>数据来源：《13班录取结果》 · 城市位置按各市人民政府驻地坐标标注</span>
-    <span><b>离线版</b> · 单文件无需联网 · 地图边界为简化示意轮廓</span>
+    <span><b>注</b> · 姓名已脱敏处理 · 地图需联网加载</span>
   </footer>
 </div>
 
 <script>
 /* ================= 数据（姓名已脱敏） ================= */
 const CITIES = [
- {name:'北京', coord:[116.4074,39.9042], students:[
+ {name:'北京', coord:[116.4074,39.9042], pos:'right', students:[
    ['李*琛','北京师范大学'],['梁*迪','中国科学院大学'],['廖*天','北京邮电大学'],['林*烨','北京理工大学'],
    ['刘*霖','北京大学'],['刘*量','清华大学'],['罗*杰','北京大学'],['骆*霖','北京航天航空大学'],
    ['吕*迈','清华大学'],['吴*锴','中国人民大学'],['袁*涵','中国社会科学院大学'],['蒋*希','北京理工大学']]},
- {name:'深圳', coord:[114.0579,22.5431], students:[
+ {name:'深圳', coord:[114.0579,22.5431], pos:'right', students:[
    ['刘*杰','哈尔滨工业大学'],['刘*语','中山大学'],['陆*玮','深圳理工大学'],['张*恺','天津大学香港理工大学'],
    ['张*玮','中山大学'],['赵*扬','哈尔滨工业大学'],['陈*恒','深圳大学'],['黄*林','中山大学']]},
- {name:'广州', coord:[113.2644,23.1291], students:[
+ {name:'广州', coord:[113.2644,23.1291], pos:'left', students:[
    ['罗*严','中山大学'],['孙*阳','中山大学'],['唐*淳','华南理工大学'],['丁*毓','中山大学'],
    ['黄*丹','中山大学'],['孔*龙','华南理工大学']]},
- {name:'珠海', coord:[113.5767,22.2710], students:[
+ {name:'珠海', coord:[113.5767,22.2710], pos:'left', students:[
    ['李*涵','中山大学'],['李*睿','中山大学'],['徐*杰','北京师范大学'],['卓*皓','中山大学'],['邓*宇','中山大学']]},
- {name:'成都', coord:[104.0668,30.5728], students:[
+ {name:'成都', coord:[104.0668,30.5728], pos:'left', students:[
    ['刘*言','四川大学'],['曾*杰','电子科技大学'],['何*越','电子科技大学']]},
- {name:'上海', coord:[121.4737,31.2304], students:[
+ {name:'上海', coord:[121.4737,31.2304], pos:'right', students:[
    ['熊*轩','同济大学'],['程*','复旦大学'],['金*仪','同济大学']]},
- {name:'合肥', coord:[117.2272,31.8206], students:[
+ {name:'合肥', coord:[117.2272,31.8206], pos:'right', students:[
    ['赖*旭','中国科学技术大学'],['彭*德','中国科学技术大学']]},
- {name:'武汉', coord:[114.3055,30.5928], students:[
+ {name:'武汉', coord:[114.3055,30.5928], pos:'left', students:[
    ['鲁*文','华中科技大学'],['赵*鹏','华中科技大学']]},
- {name:'杭州', coord:[120.1551,30.2741], students:[
+ {name:'杭州', coord:[120.1551,30.2741], pos:'bottom', students:[
    ['杨*淞','浙江大学'],['朱*鹤','西湖大学']]},
- {name:'沈阳', coord:[123.4315,41.8057], students:[['李*桦','东北大学']]},
- {name:'长沙', coord:[112.9388,28.2282], students:[['曾*秋','湖南大学']]},
- {name:'西安', coord:[108.9398,34.3416], students:[['何*欢','西安交通大学']]},
- {name:'澳门', coord:[113.5439,22.1987], students:[['黄*桢','澳门大学']]}
+ {name:'沈阳', coord:[123.4315,41.8057], pos:'right', students:[['李*桦','东北大学']]},
+ {name:'长沙', coord:[112.9388,28.2282], pos:'left', students:[['曾*秋','湖南大学']]},
+ {name:'西安', coord:[108.9398,34.3416], pos:'left', students:[['何*欢','西安交通大学']]},
+ {name:'澳门', coord:[113.5439,22.1987], pos:'bottom', students:[['黄*桢','澳门大学']]}
 ];
-const cityByName = {}; CITIES.forEach(c => cityByName[c.name] = c);
-const PRD = ['广州','深圳','珠海','澳门'];           // 珠三角，需要更大缩放
-const LBL = {  // 标签偏移 [dx, dy, anchor]
-  北京:[14,5,'start'],沈阳:[14,5,'start'],上海:[14,5,'start'],深圳:[14,5,'start'],
-  杭州:[-13,5,'end'],合肥:[-13,5,'end'],武汉:[-13,5,'end'],长沙:[-13,5,'end'],
-  成都:[-13,5,'end'],西安:[-13,5,'end'],广州:[-13,5,'end'],珠海:[-13,17,'end'],澳门:[13,17,'start']
-};
+const cityByName = {}; CITIES.forEach((c,i)=>{c.idx=i; cityByName[c.name]=c;});
+const PRD = ['广州','深圳','珠海','澳门'];                 // 珠三角需更大缩放
+const DEFAULT_VIEW = {center:[106.8,33.6], zoom:1.18};
 
-/* ================= 投影（等距圆柱，按北纬34°校正） ================= */
-const PX = lon => (lon - 73) * 16;
-const PY = lat => (54.5 - lat) * 19.3;
-CITIES.forEach(c => { c.x = PX(c.coord[0]); c.y = PY(c.coord[1]); });
-cityByName['澳门'].x += 14; cityByName['澳门'].y += 16;   // 与珠海错开，便于点选
-
+/* ================= 工具 ================= */
 const $ = s => document.querySelector(s);
 function schoolSummary(c){
   const m={}; c.students.forEach(s=>m[s[1]]=(m[s[1]]||0)+1);
@@ -390,10 +308,138 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{
 }),{threshold:.08});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-/* ================= 地图：标记渲染 ================= */
-const NS='http://www.w3.org/2000/svg';
-const svg=$('#map'), world=$('#world'), gMk=$('#markers'),
-      panel=$('#mpanel'), ttt=$('#mtt'), mapBox=document.querySelector('.map-panel');
-let k=1, tx=0, ty=0, raf=0, openCity=null;
+/* ================= 名单面板（地图内） ================= */
+const panel=$('#mpanel');
+let openCity=null;
 
-[...CITIES].sort((a,b)=>b.students.length-a.students.length).forEach((c,i)=>{
+function openPanel(name){
+  const c=cityByName[name]; openCity=name;
+  panel.innerHTML=`
+    <div class="mp-head">
+      <span class="mp-city">${c.name}</span><span class="mp-cnt">${c.students.length} 人</span>
+      <button class="mp-close" aria-label="关闭">×</button>
+    </div>
+    <div class="mp-schools">${schoolSummary(c)}</div>
+    <ul class="mp-list">${c.students.map((s,i)=>`
+      <li style="animation-delay:${i*40}ms"><b>${s[0]}</b><span class="dots"></span><span>${s[1]}</span></li>`).join('')}
+    </ul>
+    <div class="mp-tip">再次点击该城市标记或按 Esc 收起</div>`;
+  panel.querySelector('.mp-close').addEventListener('click',closePanel);
+  panel.classList.add('open');
+  document.querySelectorAll('.ccard').forEach(el=>el.classList.toggle('active',el.dataset.city===name));
+  if(chart) chart.dispatchAction({type:'highlight',seriesIndex:0,dataIndex:c.idx});
+}
+function closePanel(){
+  if(openCity===null) return;
+  const c=cityByName[openCity];
+  openCity=null; panel.classList.remove('open');
+  document.querySelectorAll('.ccard').forEach(el=>el.classList.remove('active'));
+  if(chart&&c) chart.dispatchAction({type:'downplay',seriesIndex:0,dataIndex:c.idx});
+}
+function toggleCity(name){
+  if(chart) chart.dispatchAction({type:'hideTip'});
+  if(openCity===name){ closePanel(); return; }
+  if(openCity!==null) closePanel();
+  openPanel(name); focusCity(name);
+}
+function focusCity(name){
+  if(!chart) return;
+  const c=cityByName[name], prd=PRD.includes(name), mob=innerWidth<760;
+  const Z=prd?6.5:4.2;
+  const latOff=mob?(prd?0.9:1.4):0;   // 手机端把城市抬高，避开底部面板
+  chart.setOption({geo:{center:[c.coord[0], c.coord[1]-latOff], zoom:Z}});
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePanel(); });
+
+/* ================= 地图（ECharts 在线版） ================= */
+let chart=null;
+function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s);});}
+function fail(){$('#mapErr').style.display='flex';}
+
+(async function(){
+  try{
+    if(!window.echarts) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js');
+    if(!window.echarts) await loadScript('https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js');
+    if(!window.echarts) return fail();
+    const geo = await fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+      .then(r=>{if(!r.ok)throw 0;return r.json();});
+    echarts.registerMap('china', geo);
+    initMap();
+  }catch(e){ fail(); }
+})();
+
+function initMap(){
+  chart = echarts.init($('#map'));
+  const data = CITIES.map(c=>({
+    name:c.name, value:[...c.coord, c.students.length],
+    label:{position:c.pos}
+  }));
+  chart.setOption({
+    backgroundColor:'transparent',
+    geo:{
+      map:'china', roam:true, zoom:DEFAULT_VIEW.zoom, center:DEFAULT_VIEW.center,
+      scaleLimit:{min:.7,max:14},
+      itemStyle:{areaColor:'#16273f', borderColor:'#41639a', borderWidth:.7,
+                 shadowColor:'rgba(0,0,0,.5)', shadowBlur:14, shadowOffsetY:6},
+      emphasis:{itemStyle:{areaColor:'#1e3354'}, label:{show:false}},
+      select:{itemStyle:{areaColor:'#1e3354'}, label:{show:false}}
+    },
+    tooltip:{
+      trigger:'item', confine:true,
+      backgroundColor:'rgba(13,22,40,.96)', borderColor:'rgba(240,192,96,.4)', borderWidth:1,
+      padding:[10,14], extraCssText:'box-shadow:0 14px 34px rgba(0,0,0,.55);border-radius:10px;',
+      formatter:p=>{
+        const c=cityByName[p.name]; if(!c) return '';
+        const rows=c.students.slice(0,5).map(s=>`<li><b>${s[0]}</b><span>${s[1]}</span></li>`).join('');
+        return `<div class="tt"><h4>${c.name}<em>${c.students.length} 人</em></h4><ul>${rows}</ul>
+          ${c.students.length>5?`<p class="more">+${c.students.length-5} 位同学</p>`:''}</div>`;
+      }
+    },
+    series:[{
+      type:'effectScatter', coordinateSystem:'geo', data, zlevel:2,
+      showEffectOn:'emphasis',
+      rippleEffect:{brushType:'stroke', scale:3.4, period:4.5},
+      symbolSize:v=>10+v[2]*1.9,
+      itemStyle:{
+        color:new echarts.graphic.RadialGradient(.35,.35,.8,[
+          {offset:0,color:'#ffe6ac'},{offset:.55,color:'#f0c060'},{offset:1,color:'#d97b2a'}]),
+        borderColor:'#fff3d6', borderWidth:1, opacity:.94,
+        shadowColor:'rgba(240,192,96,.85)', shadowBlur:12
+      },
+      label:{
+        show:true, formatter:'{b}', color:'#f6e7c4', fontSize:12, fontWeight:600,
+        textBorderColor:'rgba(8,14,26,.9)', textBorderWidth:2, distance:6
+      },
+      emphasis:{itemStyle:{shadowBlur:24}}
+    }]
+  });
+
+  /* 点击城市圆点 → 地图内展开 / 收起名单；点击空白 → 收起 */
+  chart.on('click', p=>{
+    if(p.componentType==='series') toggleCity(p.name);
+    else closePanel();
+  });
+
+  window.addEventListener('resize', ()=>chart.resize());
+}
+
+/* 城市卡片 → 聚焦并展开名单 */
+document.querySelectorAll('.ccard').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    toggleCity(el.dataset.city);
+    if(innerWidth<760) $('#map').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  el.addEventListener('mouseenter', ()=>chart&&chart.dispatchAction({type:'highlight',seriesIndex:0,dataIndex:cityByName[el.dataset.city].idx}));
+  el.addEventListener('mouseleave', ()=>chart&&chart.dispatchAction({type:'downplay',seriesIndex:0,dataIndex:cityByName[el.dataset.city].idx}));
+});
+
+/* 重置视图 */
+$('#resetBtn').addEventListener('click', ()=>{
+  closePanel();
+  if(!chart) return;
+  chart.setOption({geo:{center:DEFAULT_VIEW.center, zoom:DEFAULT_VIEW.zoom}});
+  chart.dispatchAction({type:'hideTip'});
+});
+</script>
+</body>
+</html>
